@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduGenie | AI Learning Assistant</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<header class="header">
+    <div>
+        <h1>🎓 EduGenie</h1>
+        <p>Google Gemini Powered Learning Assistant</p>
+    </div>
+</header>
+
+<main class="container">
+
+    <section class="hero">
+        <h2>Learn Smarter with AI</h2>
+        <p>
+            Ask questions, simplify difficult concepts, create quizzes,
+            summarize notes, and build personalized learning paths.
+        </p>
+    </section>
+
+
+    <!-- Main AI Features -->
+    <section class="card">
+
+        <label for="mainInput">
+            Enter your question, topic, or text
+        </label>
+
+        <textarea
+            id="mainInput"
+            placeholder="Example: Explain Pythagoras theorem in simple words..."
+        ></textarea>
+
+
+        <div class="button-grid">
+
+            <button onclick="askAI()">
+                💬 Ask Question
+            </button>
+
+            <button onclick="explainAI()">
+                📖 Explain Simply
+            </button>
+
+            <button onclick="generateQuiz()">
+                📝 Generate Quiz
+            </button>
+
+            <button onclick="summarizeAI()">
+                📚 Summarize
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- Learning Path -->
+    <div class="learning-options">
+
+        <h3>Learning Path Options</h3>
+
+        <div class="learning-fields">
+
+            <input
+                type="text"
+                id="subject"
+                placeholder="Enter subject"
+            >
+
+
+            <select id="level">
+
+                <option value="" disabled selected>
+                    Select level
+                </option>
+
+                <option value="Beginner">
+                    Beginner
+                </option>
+
+                <option value="Intermediate">
+                    Intermediate
+                </option>
+
+                <option value="Advanced">
+                    Advanced
+                </option>
+
+            </select>
+
+
+            <input
+                type="number"
+                id="weeks"
+                placeholder="Number of weeks"
+                min="1"
+                max="52"
+            >
+
+
+            <button
+                class="learning-path-btn"
+                onclick="runLearningPath()"
+            >
+                🗺️ Create Learning Path
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- Result Section -->
+    <section class="card result-card">
+
+        <div class="result-title">
+
+            <h2>🤖 EduGenie Response</h2>
+
+            <button
+                class="clear-btn"
+                onclick="clearResult()"
+            >
+                Clear
+            </button>
+
+        </div>
+
+
+        <div
+            id="loading"
+            class="loading"
+        >
+            Thinking...
+        </div>
+
+
+        <pre id="result">
+Your AI response will appear here.
+        </pre>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <p>
+        EduGenie © 2026 | FastAPI + Google Gemini
+    </p>
+
+</footer>
+
+
+<script>
+
+/* =========================================
+   COMMON POST FUNCTION
+========================================= */
+
+async function postData(url, body) {
+
+    const result = document.getElementById("result");
+    const loading = document.getElementById("loading");
+
+    loading.style.display = "block";
+
+    result.textContent = "";
+
+    try {
+
+        const response = await fetch(url, {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(body)
+
+        });
+
+
+        const data = await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail || "Request failed"
+            );
+
+        }
+
+
+        result.textContent = data.answer;
+
+    }
+
+    catch (error) {
+
+        result.textContent =
+            "Error: " + error.message;
+
+    }
+
+    finally {
+
+        loading.style.display = "none";
+
+    }
+
+}
+
+
+/* =========================================
+   GET MAIN TEXT
+========================================= */
+
+function getText() {
+
+    const text =
+        document.getElementById("mainInput").value.trim();
+
+
+    if (!text) {
+
+        alert(
+            "Please enter something first."
+        );
+
+        return null;
+
+    }
+
+
+    return text;
+
+}
+
+
+/* =========================================
+   ASK QUESTION
+========================================= */
+
+function askAI() {
+
+    const text = getText();
+
+    if (text) {
+
+        postData("/qa", {
+            text: text
+        });
+
+    }
+
+}
+
+
+/* =========================================
+   EXPLAIN SIMPLY
+========================================= */
+
+function explainAI() {
+
+    const text = getText();
+
+    if (text) {
+
+        postData("/explain", {
+            text: text
+        });
+
+    }
+
+}
+
+
+/* =========================================
+   SUMMARIZE
+========================================= */
+
+function summarizeAI() {
+
+    const text = getText();
+
+    if (text) {
+
+        postData("/summarize", {
+            text: text
+        });
+
+    }
+
+}
+
+
+/* =========================================
+   GENERATE QUIZ
+========================================= */
+
+function generateQuiz() {
+
+    const text = getText();
+
+
+    if (text) {
+
+        postData("/quiz", {
+
+            topic: text,
+
+            number_of_questions: 5
+
+        });
+
+    }
+
+}
+
+
+/* =========================================
+   LEARNING PATH
+========================================= */
+
+function runLearningPath() {
+
+    const subject =
+        document.getElementById("subject").value.trim();
+
+
+    const level =
+        document.getElementById("level").value;
+
+
+    const weeksInput =
+        document.getElementById("weeks");
+
+
+    const weeksValue =
+        weeksInput.value.trim();
+
+
+    /* Check subject */
+
+    if (!subject) {
+
+        alert(
+            "Please enter a subject."
+        );
+
+        document.getElementById("subject").focus();
+
+        return;
+
+    }
+
+
+    /* Check level */
+
+    if (!level) {
+
+        alert(
+            "Please select your learning level."
+        );
+
+        document.getElementById("level").focus();
+
+        return;
+
+    }
+
+
+    /* Check empty weeks */
+
+    if (!weeksValue) {
+
+        alert(
+            "Number of weeks should not be empty. Minimum value is 1."
+        );
+
+        weeksInput.focus();
+
+        return;
+
+    }
+
+
+    const weeks =
+        Number(weeksValue);
+
+
+    /* Check minimum */
+
+    if (weeks < 1) {
+
+        alert(
+            "Number of weeks should be at least 1."
+        );
+
+        weeksInput.focus();
+
+        return;
+
+    }
+
+
+    /* Check maximum */
+
+    if (weeks > 52) {
+
+        alert(
+            "Number of weeks cannot be more than 52."
+        );
+
+        weeksInput.focus();
+
+        return;
+
+    }
+
+
+    /* Send Learning Path request */
+
+    postData(
+        "/learn/recommendations",
+        {
+            subject: subject,
+            level: level,
+            weeks: weeks
+        }
+    );
+
+}
+
+
+/* =========================================
+   CLEAR RESULT
+========================================= */
+
+function clearResult() {
+
+    document.getElementById("result").textContent =
+        "Your AI response will appear here.";
+
+}
+
+</script>
+
+</body>
+</html>
